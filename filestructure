@@ -1,0 +1,14 @@
+image-classification-service/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── model.py
+│   ├── inference.py
+│   └── schemas.py
+├── images/
+│   ├── chesapeake-bay-retriever-1536x1024.webp
+│   └── Golden_retriever.jpg
+├── Dockerfile
+├── requirements.txt
+├── README.md
+└── .gitignore
