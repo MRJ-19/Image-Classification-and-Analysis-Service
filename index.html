@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Image Classifier</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; background: #f4f7f6; margin-top: 50px; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 400px; text-align: center; }
+        #drop-zone { border: 2px dashed #007bff; padding: 40px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; }
+        #drop-zone:hover { background: #e7f3ff; }
+        #preview { max-width: 100%; border-radius: 8px; display: none; margin-bottom: 20px; }
+        .result-item { display: flex; justify-content: space-between; margin: 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .label { font-weight: bold; color: #333; }
+        .score { color: #007bff; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>AI Image Classifier</h2>
+        <div id="drop-zone">Click or Drop Image Here</div>
+        <input type="file" id="file-input" hidden accept="image/*">
+        <img id="preview">
+        <button id="upload-btn" disabled>Classify Image</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const preview = document.getElementById('preview');
+        const uploadBtn = document.getElementById('upload-btn');
+        const resultsDiv = document.getElementById('results');
+
+        dropZone.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    uploadBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        uploadBtn.onclick = async () => {
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            resultsDiv.innerHTML = "Processing...";
+            uploadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = "<h3>Results:</h3>";
+                data.predictions.forEach(p => {
+                    resultsDiv.innerHTML += `
+                        <div class="result-item">
+                            <span class="label">${p.label.replace('_', ' ')}</span>
+                            <span class="score">${(p.score * 100).toFixed(2)}%</span>
+                        </div>`;
+                });
+            } catch (err) {
+                resultsDiv.innerHTML = "Error classifying image.";
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
